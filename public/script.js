@@ -38,3 +38,31 @@ async function cargarLocalidades() {
     });
 }
 cargarLocalidades();
+async function filtrarTemperaturas(tipo) {
+    const res = await fetch("/api/datos");
+    const data = await res.json();
+    const localidades = data.localidades;
+
+    let resultado = "";
+
+    localidades.forEach(loc => {
+        let diasFiltrados = [];
+
+        loc.temperaturas.forEach(t => {
+            if (tipo === "mayor25" && parseFloat(t.max) > 25) {
+                diasFiltrados.push(`${t.dia} (Max: ${t.max}°C)`);
+            } else if (tipo === "menor15" && parseFloat(t.min) < 15) {
+                diasFiltrados.push(`${t.dia} (Min: ${t.min}°C)`);
+            }
+        });
+
+        if (diasFiltrados.length > 0) {
+            resultado += `<strong>${loc.nombre}:</strong> ${diasFiltrados.join(", ")}<br>`;
+        }
+    });
+
+    document.getElementById("resultado").innerHTML = resultado || "No se encontraron resultados.";
+}
+
+document.getElementById("btnMayor25").addEventListener("click", () => filtrarTemperaturas("mayor25"));
+document.getElementById("btnMenor15").addEventListener("click", () => filtrarTemperaturas("menor15"));

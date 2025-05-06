@@ -82,3 +82,31 @@ app.get("/api/media-dia/:dia", (req, res) => {
 app.listen(PORT, () => {
     console.log(`Servidor escuchando en http://localhost:${PORT}`);
 });
+app.get("/api/filtrar", (req, res) => {
+    const umbral = parseFloat(req.query.umbral);
+    const tipo = req.query.tipo; // "mayor" o "menor"
+    const campo = req.query.campo; // "max" o "min"
+
+    if (isNaN(umbral) || !["mayor", "menor"].includes(tipo) || !["max", "min"].includes(campo)) {
+        return res.status(400).json({ error: "Parámetros inválidos" });
+    }
+
+    let resultado = [];
+
+    datos.localidades.forEach(localidad => {
+        localidad.temperaturas.forEach(temp => {
+            const valor = parseFloat(temp[campo]);
+            const cumple = tipo === "mayor" ? valor > umbral : valor < umbral;
+
+            if (cumple) {
+                resultado.push({
+                    localidad: localidad.nombre,
+                    dia: temp.dia,
+                    temperatura: valor
+                });
+            }
+        });
+    });
+
+    res.json(resultado);
+});

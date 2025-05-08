@@ -15,15 +15,14 @@ try {
     datos = JSON.parse(rawData);
 } catch (error) {
     console.error("Error al cargar datos.json:", error);
-    process.exit(1); // Detiene el servidor si no puede cargar los datos
+    process.exit(1);
 }
 
-// Ruta para enviar el JSON completo (si quieres que el cliente lo cargue directamente)
+// Rutas
 app.get("/api/datos", (req, res) => {
     res.json(datos);
 });
 
-// Ruta para media global
 app.get("/api/media-global", (req, res) => {
     const todasLasMaximas = datos.localidades.flatMap(loc =>
         loc.temperaturas.map(t => parseFloat(t.max))
@@ -39,7 +38,6 @@ app.get("/api/media-global", (req, res) => {
     res.json({ media: media.toFixed(2) });
 });
 
-// Ruta para media por localidad
 app.get("/api/media-localidad/:nombre", (req, res) => {
     const nombre = decodeURIComponent(req.params.nombre);
     const localidad = datos.localidades.find(loc => loc.nombre === nombre);
@@ -49,14 +47,12 @@ app.get("/api/media-localidad/:nombre", (req, res) => {
     }
 
     const maximas = localidad.temperaturas.map(t => parseFloat(t.max));
-            const suma = maximas.reduce((acc, temp) => acc + temp, 0);
-            const media = suma / maximas.length;
+    const suma = maximas.reduce((acc, temp) => acc + temp, 0);
+    const media = suma / maximas.length;
 
-            res.json({ media: media.toFixed(2) });
-
+    res.json({ media: media.toFixed(2) });
 });
 
-// Ruta para media por día
 app.get("/api/media-dia/:dia", (req, res) => {
     const dia = parseInt(req.params.dia);
 
@@ -79,13 +75,11 @@ app.get("/api/media-dia/:dia", (req, res) => {
     res.json({ media: media.toFixed(2) });
 });
 
-app.listen(PORT, () => {
-    console.log(`Servidor escuchando en http://localhost:${PORT}`);
-});
+// Ruta para filtrar días
 app.get("/api/filtrar", (req, res) => {
     const umbral = parseFloat(req.query.umbral);
-    const tipo = req.query.tipo; // "mayor" o "menor"
-    const campo = req.query.campo; // "max" o "min"
+    const tipo = req.query.tipo;
+    const campo = req.query.campo;
 
     if (isNaN(umbral) || !["mayor", "menor"].includes(tipo) || !["max", "min"].includes(campo)) {
         return res.status(400).json({ error: "Parámetros inválidos" });
@@ -109,4 +103,30 @@ app.get("/api/filtrar", (req, res) => {
     });
 
     res.json(resultado);
+});
+
+// Ruta para resumen semanal
+app.get("/api/resumen-localidades", (req, res) => {
+    const resumen = datos.localidades.map(loc => {
+        const maximas = loc.temperaturas.map(t => parseFloat(t.max));
+        const minimas = loc.temperaturas.map(t => parseFloat(t.min));
+
+        const maxSemana = Math.max(...maximas);
+        const minSemana = Math.min(...minimas);
+        const mediaSemana = (maximas.reduce((acc, t) => acc + t, 0) / maximas.length).toFixed(2);
+
+        return {
+            nombre: loc.nombre,
+            maxSemana,
+            minSemana,
+            mediaSemana
+        };
+    });
+
+    res.json(resumen);
+});
+
+// 🟢 Ahora sí escuchamos después de definir todas las rutas
+app.listen(PORT, () => {
+    console.log(`Servidor escuchando en http://localhost:${PORT}`);
 });

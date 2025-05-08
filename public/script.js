@@ -63,6 +63,24 @@ async function filtrarTemperaturas(tipo) {
 
     document.getElementById("resultado").innerHTML = resultado || "No se encontraron resultados.";
 }
-
 document.getElementById("btnMayor25").addEventListener("click", () => filtrarTemperaturas("mayor25"));
 document.getElementById("btnMenor15").addEventListener("click", () => filtrarTemperaturas("menor15"));
+
+async function mostrarResumenSemanal() {
+    const res = await fetch("/api/resumen-localidades");
+    const data = await res.json();
+
+    let resultado = "";
+
+    data.forEach(loc => {
+        resultado += `<strong>${loc.nombre}</strong>: 
+        Máxima semana: ${loc.maxSemana}°C, 
+        Mínima semana: ${loc.minSemana}°C, 
+        Media semana: ${loc.mediaSemana}°C<br>`;
+    });
+
+    document.getElementById("resumenSemanal").innerHTML = resultado;
+}
+
+document.getElementById("btnResumen").addEventListener("click", mostrarResumenSemanal);
+

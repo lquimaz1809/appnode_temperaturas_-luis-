@@ -125,8 +125,40 @@ app.get("/api/resumen-localidades", (req, res) => {
 
     res.json(resumen);
 });
+app.get("/api/mayor-menor-media", (req, res) => {
+    const campo = req.query.campo; // "max" o "min"
 
-// 🟢 Ahora sí escuchamos después de definir todas las rutas
+    if (!["max", "min"].includes(campo)) {
+        return res.status(400).json({ error: "Campo inválido (debe ser 'max' o 'min')" });
+    }
+
+    // Calcular medias por localidad
+    const medias = datos.localidades.map(loc => {
+        const valores = loc.temperaturas.map(t => parseFloat(t[campo]));
+        const suma = valores.reduce((acc, t) => acc + t, 0);
+        const media = suma / valores.length;
+
+        return {
+            nombre: loc.nombre,
+            media: media
+        };
+    });
+
+    // Buscar mayor y menor
+    let mayor = medias[0];
+    let menor = medias[0];
+
+    medias.forEach(loc => {
+        if (loc.media > mayor.media) mayor = loc;
+        if (loc.media < menor.media) menor = loc;
+    });
+
+    res.json({
+        mayor: { nombre: mayor.nombre, media: mayor.media.toFixed(2) },
+        menor: { nombre: menor.nombre, media: menor.media.toFixed(2) }
+    });
+});
+
 app.listen(PORT, () => {
     console.log(`Servidor escuchando en http://localhost:${PORT}`);
 });

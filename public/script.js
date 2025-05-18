@@ -87,7 +87,7 @@ async function mostrarMayorMenor(campo) {
     const res = await fetch(`/api/mayor-menor-media?campo=${campo}`);
     const data = await res.json();
 
-    document.getElementById("resultadoMayorMenor").innerHTML = `
+document.getElementById("resultadoMayorMenor").innerHTML = `
         🌡️ Mayor media (${campo}): <strong>${data.mayor.nombre}</strong> con ${data.mayor.media}°C<br>
         ❄️ Menor media (${campo}): <strong>${data.menor.nombre}</strong> con ${data.menor.media}°C
     `;
